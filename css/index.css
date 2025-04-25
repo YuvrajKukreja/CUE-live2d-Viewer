@@ -64,14 +64,20 @@ img {
     margin: 0 auto;
     display: flex;
     height: 100vh;
-    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-self: center;
+    /* flex-direction: row; */
+    background-color: #0df00d;
 }
 
 .container-main {
-    width: 75vw;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #0dcaf0;
+    height: 100%;
 }
 
 #viewer {

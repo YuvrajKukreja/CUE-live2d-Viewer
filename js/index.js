@@ -2,6 +2,11 @@
 
 var l2dviewer;
 var l2dmaster;
+function getQueryParam(key, defaultValue = 0) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const value = urlParams.get(key);
+    return value !== null ? value : defaultValue;
+  }
 
 class l2dViewer{
 
@@ -38,17 +43,33 @@ class l2dViewer{
         this._app.stage.addChild(modelcontainer);
         this.containers.set('Models', modelcontainer);
 
-        this.loadBG('./bg/background004_1/manifest.json')
+        
+        const show_background = getQueryParam('show_background', 1); // Returns "22" or 0 if not found
+
+        if(show_background == 0){
+            // this.loadBG('./bg/background004_1/manifest.json')
+
+        }else{
+            this.loadBG('./bg/background004_1/manifest.json')
+        }
     }
 
     _resizeViwer(){
+
+        
+          // Example usage with default fallback
+          const num1 = getQueryParam('number1', 1); // Returns "22" or 0 if not found
+          const num2 = getQueryParam('number2', 1); // Returns "44" or 0 if not found
+        
+
+          
         let elewidth = this._element.offsetWidth;
         let eleheight = this._element.offsetHeight;
 
         let ratio = Math.min(elewidth / 1334, eleheight / 750);
         
-        let resizedX = 1334 * ratio;
-        let resizedY = 750 * ratio;
+        let resizedX = (1334*num1) * ratio;
+        let resizedY = (750*num2) * ratio;
         
         this._app.view.style.width = `${resizedX}px`;
         this._app.view.style.height = `${resizedY}px`;
@@ -78,7 +99,7 @@ class l2dViewer{
         
 
         model.setAnchor(.5);
-        model.setScale(.3);
+        model.setScale(.33);
         model._Model.position.set(this._app.screen.width/2, this._app.screen.height * 3/4);
         model.pointerEventBind();
 
@@ -204,7 +225,9 @@ class HeroModel{
     pointerEventBind() {
         
         this._Model.autoInteract = false;
-        this._Model.interactive = true;
+        this._Model.eventMode = 'static';
+
+        
         this._Model.focusing = false;
 
         this._Model.buttonMode = true;
@@ -660,12 +683,15 @@ const setupModelSetting = (M) => {
     Array.from(expressions).forEach((exp, index)=>{
         let expbtn = document.createElement("button");
         expbtn.innerHTML = exp['Name']
+        expbtn.id = `${exp['Name']}-id`;  // 👈 Set your desired ID here
         expbtn.addEventListener('click', ()=>{
             M.loadExpression(index)
         })
 
         expressionslist.append(expbtn)
     })
+
+    // load_list_for_buttons_from_a_div__and_programatically_click_button(expressionslist,2); // facial expressions / emotions
 
     //SET UP MOTIONS LIST
     let motionslist = document.getElementById('motion-list')
@@ -681,13 +707,26 @@ const setupModelSetting = (M) => {
 
             let motionbtn = document.createElement("button");
             motionbtn.innerHTML = m['Name']
+            motionbtn.id = `${m['Name']}-id`;  // 👈 Set your desired ID here
             motionbtn.addEventListener("click", ()=>{
                 M.loadMotion(key, index, 'FORCE')
             })
 
             motionslist.append(motionbtn)
+            // console.log("below is the object")
+            // console.log( `${m['Name']}-id` )
+            
         })
     }
+
+
+    load_list_for_buttons_from_a_div__and_programatically_click_button(motionslist,16);// pose / position 
+
+
+
+
+
+
 
     //SET UP MODEL PARAMETER LIST
     let parameterslist = document.getElementById('parameters-list')
@@ -702,6 +741,7 @@ const setupModelSetting = (M) => {
         let range = document.createElement("input");
         range.type = 'range'
         range.className = 'input-range'
+        range.id = `${param.parameterIds}-id`;// modified my yuv.
         range.setAttribute('step', 0.01)
         range.setAttribute('min', param.min)
         range.setAttribute('max', param.max)
@@ -796,33 +836,46 @@ const setupModelSetting = (M) => {
 $(document).ready(async() => {
 
     await fetch('./json/live2dMaster.json')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw Error(response.statusText);
-                }
-                return response;
-            })
-            .then(response => response.json())
-            .then(json => {
-                l2dmaster = json
-                setupCharacterSelect(l2dmaster)
-            }).catch(function(error) {
-                console.log('failed while loading index.json.');
-            });
+        .then(function (response) {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response;
+        })
+        .then(response => response.json())
+        .then(json => {
+            l2dmaster = json;
+            setupCharacterSelect(l2dmaster);
 
-    await fetch('./json/bg.json')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw Error(response.statusText);
-                }
-                return response;
-            })
-            .then(response => response.json())
-            .then(json => {
-                setupCanvasBackgroundOption(json)
-            }).catch(function(error) {
-                console.log('failed while loading index.json.');
-            });
+
+            select_model();
+        }).catch(function (error) {
+            console.log('failed while loading index.json.');
+        });
+
+
+
+
+
+        await fetch('./json/bg.json')
+        .then(function (response) {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response;
+        })
+        .then(response => response.json())
+        .then(json => {
+            setupCanvasBackgroundOption(json);
+
+select_dress();
+        }).catch(function (error) {
+            console.log('failed while loading bg.json.');
+        });
+
+
+
+
 
     l2dviewer = new l2dViewer(document.getElementById('viewer-place'))
     
@@ -868,6 +921,8 @@ $(document).ready(async() => {
 
         let settingBtn = document.createElement("button");
         settingBtn.className = "model-setting-btn"
+        settingBtn.id = "model-setting-btn-id";
+
         settingBtn.innerHTML = `<i class="fa-solid fa-ellipsis"></i>`
         settingBtn.onclick = () =>{
             toggleTabContainer('ModelSetting')
@@ -876,6 +931,9 @@ $(document).ready(async() => {
         infoblock.append(settingBtn)
 
         modelsList.append(infoblock)
+
+
+        do_the_clicking();
     }
 
     document.getElementById("colorPicker").onchange = function(e) {
