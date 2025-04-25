@@ -1,12 +1,4 @@
-# CUE-live2d-Viewer
+CUE-live2d-Viewer__english_fork
+total two main modifications
 
-The viewer that display all of CUE! game live2d model.
-
-©Liber Entertainment Inc.
-
-## Demo
-- CUE! live2d Viewer [Demo](https://cpk0521.github.io/CUE-live2d-Viewer/index.html "Demo")
-
-
-
-
+1st english conversion 2nd programatically clicking the buttons and sliders ( good for further integration for llms with may be a custom embeded in th llm's response. )
